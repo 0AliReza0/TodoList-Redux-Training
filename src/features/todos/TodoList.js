@@ -1,26 +1,31 @@
 // add imports
 import {
-    useGetTodosQuery
+    useGetTodosQuery,
+    useAddTodoMutation,
+    useUpdateTodoMutation,
+    useDeleteTodoMutation
 } from "../api/apiSlice";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash, faUpload } from '@fortawesome/free-solid-svg-icons'
-import { useState } from "react"
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import {faTrash, faUpload} from '@fortawesome/free-solid-svg-icons'
+import {useState} from "react"
 
 const TodoList = () => {
     const [newTodo, setNewTodo] = useState('')
 
     const {
-        data:todos,
+        data: todos,
         isLoading,
         isSuccess,
         isError,
         error
-    }=useGetTodosQuery()
-    console.log(todos)
+    } = useGetTodosQuery()
+    const [addTodo] = useAddTodoMutation()
+    const [updateTodo] = useUpdateTodoMutation()
+    const [deleteTodo] = useDeleteTodoMutation()
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        //addTodo
+        addTodo({userId: 1, title: newTodo, completed: false})
         setNewTodo('')
     }
 
@@ -37,18 +42,35 @@ const TodoList = () => {
                 />
             </div>
             <button className="submit">
-                <FontAwesomeIcon icon={faUpload} />
+                <FontAwesomeIcon icon={faUpload}/>
             </button>
         </form>
 
 
     let content;
-    if(isLoading){
-        content=<p>loading...</p>
-    }else if(isSuccess){
-        content=JSON.stringify(todos)
-    }else if(isError){
-        content=<p>{error}</p>
+    if (isLoading) {
+        content = <p>loading...</p>
+    } else if (isSuccess) {
+        content = todos.map(todo => {
+            return (
+                <article key={todo.id}>
+                    <div className='todo'>
+                        <input
+                            type="checkbox"
+                            checked={todo.completed}
+                            id={todo.id}
+                            onChange={() => updateTodo({...todo, completed: !todo.completed})}
+                        />
+                        <label htmlFor={todo.id}>{todo.title}</label>
+                    </div>
+                    <button className='trash' onClick={() => deleteTodo({id: todo.id})}>
+                        <FontAwesomeIcon icon={faTrash}/>
+                    </button>
+                </article>
+            )
+        })
+    } else if (isError) {
+        content = <p>{error}</p>
     }
 
     return (
